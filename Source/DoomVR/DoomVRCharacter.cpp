@@ -5,6 +5,7 @@
 #include "DoomVRProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "GameFramework/InputSettings.h"
+#include "PaperFlipbookComponent.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -26,23 +27,10 @@ ADoomVRCharacter::ADoomVRCharacter()
 	FirstPersonCameraComponent->RelativeLocation = FVector(0, 0, 64.f); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
 
-	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
-	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
-	Mesh1P->SetOnlyOwnerSee(true);
-	Mesh1P->AttachParent = FirstPersonCameraComponent;
-	Mesh1P->bCastDynamicShadow = false;
-	Mesh1P->CastShadow = false;
-
-	// Create a gun mesh component
-	FP_Gun = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("FP_Gun"));
-	FP_Gun->SetOnlyOwnerSee(true);			// only the owning player will see this mesh
-	FP_Gun->bCastDynamicShadow = false;
-	FP_Gun->CastShadow = false;
-	FP_Gun->AttachTo(Mesh1P, TEXT("GripPoint"), EAttachLocation::SnapToTargetIncludingScale, true);
-
-
-	// Default offset from the character location for projectiles to spawn
-	GunOffset = FVector(100.0f, 30.0f, 10.0f);
+	FlipbookComponent = CreateDefaultSubobject<UPaperFlipbookComponent>(TEXT("FlipbookComponent"));
+	FlipbookComponent->AttachParent = FirstPersonCameraComponent;
+	FlipbookComponent->bCastDynamicShadow = false;
+	FlipbookComponent->CastShadow = false;
 
 	// Note: The ProjectileClass and the skeletal mesh/anim blueprints for Mesh1P are set in the
 	// derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -84,13 +72,13 @@ void ADoomVRCharacter::OnFire()
 	{
 		const FRotator SpawnRotation = GetControlRotation();
 		// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-		const FVector SpawnLocation = GetActorLocation() + SpawnRotation.RotateVector(GunOffset);
+//		const FVector SpawnLocation = GetActorLocation() + SpawnRotation.RotateVector(GunOffset);
 
 		UWorld* const World = GetWorld();
 		if (World != NULL)
 		{
 			// spawn the projectile at the muzzle
-			World->SpawnActor<ADoomVRProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
+//			World->SpawnActor<ADoomVRProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
 		}
 	}
 
@@ -104,11 +92,11 @@ void ADoomVRCharacter::OnFire()
 	if(FireAnimation != NULL)
 	{
 		// Get the animation object for the arms mesh
-		UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
-		if(AnimInstance != NULL)
-		{
-			AnimInstance->Montage_Play(FireAnimation, 1.f);
-		}
+//		UAnimInstance* AnimInstance = Mesh1P->GetAnimInstance();
+//		if(AnimInstance != NULL)
+//		{
+//			AnimInstance->Montage_Play(FireAnimation, 1.f);
+//		}
 	}
 
 }
@@ -214,4 +202,12 @@ bool ADoomVRCharacter::EnableTouchscreenMovement(class UInputComponent* InputCom
 		InputComponent->BindTouch(EInputEvent::IE_Repeat, this, &ADoomVRCharacter::TouchUpdate);
 	}
 	return bResult;
+}
+
+void ADoomVRCharacter::SetViewFromDirection(FVector direction)
+{
+	FVector diff = direction - this->GetActorForwardVector();
+	float angle = FGenericPlatformMath::Atan2(diff.X, diff.Y);
+
+	this->CurrentFlipbookIndex = PI / angle;
 }

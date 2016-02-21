@@ -3,24 +3,26 @@
 #include "GameFramework/Character.h"
 #include "DoomVRCharacter.generated.h"
 
+
 class UInputComponent;
+class UPaperFlipbookComponent;
+class UPaperFlipbook;
 
 UCLASS(config=Game)
 class ADoomVRCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	/** Pawn mesh: 1st person view (arms; seen only by self) */
-	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
-	class USkeletalMeshComponent* Mesh1P;
-
-	/** Gun mesh: 1st person view (seen only by self) */
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	class USkeletalMeshComponent* FP_Gun;
+	/** Flipbook that shows character animation and rendering */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Sprites, meta = (AllowPrivateAccess = "true"))
+	UPaperFlipbookComponent* FlipbookComponent;
 
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FirstPersonCameraComponent;
+
+	int CurrentFlipbookIndex;
+
 public:
 	ADoomVRCharacter();
 
@@ -31,10 +33,6 @@ public:
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
-
-	/** Gun muzzle's offset from the characters location */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
-	FVector GunOffset;
 
 	/** Projectile class to spawn */
 	UPROPERTY(EditDefaultsOnly, Category=Projectile)
@@ -47,6 +45,9 @@ public:
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	class UAnimMontage* FireAnimation;
+
+	UPROPERTY(EditAnywhere, Category = Sprites)
+	TArray<UPaperFlipbook*> FlipbooksHead;
 
 protected:
 	
@@ -98,10 +99,6 @@ protected:
 	bool EnableTouchscreenMovement(UInputComponent* InputComponent);
 
 public:
-	/** Returns Mesh1P subobject **/
-	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
-	/** Returns FirstPersonCameraComponent subobject **/
-	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
-
+	void SetViewFromDirection(FVector direction);
 };
 
