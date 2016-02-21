@@ -204,10 +204,21 @@ bool ADoomVRCharacter::EnableTouchscreenMovement(class UInputComponent* InputCom
 	return bResult;
 }
 
+void ADoomVRCharacter::Tick(float deltaSeconds)
+{
+	ACharacter::Tick(deltaSeconds);
+
+	//if (GEngine) {
+	//	SetViewFromDirection(GEngine->GetFirstLocalPlayerController(GetWorld())->PlayerCameraManager->GetActorForwardVector());
+	//}
+}
+
 void ADoomVRCharacter::SetViewFromDirection(FVector direction)
 {
 	FVector diff = direction - this->GetActorForwardVector();
 	float angle = FGenericPlatformMath::Atan2(diff.X, diff.Y);
 
 	this->CurrentFlipbookIndex = PI / angle;
+
+	this->FlipbookComponent->SetFlipbook(this->FlipbooksHead[CurrentFlipbookIndex]);
 }

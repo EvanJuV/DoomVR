@@ -98,6 +98,8 @@ protected:
 	 */
 	bool EnableTouchscreenMovement(UInputComponent* InputComponent);
 
+	virtual void Tick(float deltaSeconds) override;
+
 public:
 	void SetViewFromDirection(FVector direction);
 };
